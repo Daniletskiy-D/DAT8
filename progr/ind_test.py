@@ -8,59 +8,7 @@
 import sqlite3
 from pathlib import Path
 import unittest
-
-
-def create_tables(conn):
-    cursor = conn.cursor()
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS trains (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        departure_point TEXT NOT NULL,
-        number_train TEXT NOT NULL,
-        time_departure TEXT NOT NULL,
-        destination_id INTEGER NOT NULL,
-        FOREIGN KEY(destination_id) REFERENCES destinations(id)
-    )
-    """)
-    cursor.execute("""
-    CREATE TABLE IF NOT EXISTS destinations (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT NOT NULL UNIQUE
-    )
-    """)
-    conn.commit()
-
-
-def add_train(conn, departure_point, number_train, 
-              time_departure, destination):
-    cursor = conn.cursor()
-    cursor.execute("SELECT id FROM destinations WHERE name=?", 
-                   (destination,))
-    destination_id = cursor.fetchone()
-    if destination_id is None:
-        cursor.execute("INSERT INTO destinations (name) VALUES (?)", 
-                       (destination,))
-        destination_id = cursor.lastrowid
-    else:
-        destination_id = destination_id[0]
-    cursor.execute("""
-    INSERT INTO trains (departure_point, number_train, 
-                        time_departure, destination_id)
-    VALUES (?, ?, ?, ?)
-    """, (departure_point, number_train, time_departure, destination_id))
-    conn.commit()
-
-
-def display_trains(conn):
-    cursor = conn.cursor()
-    cursor.execute("""
-    SELECT t.number_train, t.departure_point, t.time_departure, 
-        d.name AS destination
-        FROM trains AS t
-        INNER JOIN destinations AS d ON t.destination_id = d.id
-        """)
-    rows = cursor.fetchall()
-    return rows
+from ind import create_tables, add_train, display_trains
 
 
 class TestDatabaseOperations(unittest.TestCase):
